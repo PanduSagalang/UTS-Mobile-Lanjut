@@ -16,23 +16,37 @@
 
 package com.example.unscramble.ui
 
+import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.room.Room
+import com.example.unscramble.AppDatabase
+import com.example.unscramble.TambahKataDao
 import com.example.unscramble.data.MAX_NO_OF_WORDS
 import com.example.unscramble.data.SCORE_INCREASE
+import com.example.unscramble.data.TambahKata
 import com.example.unscramble.data.allWords
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * ViewModel containing the app data and methods to process the data
  */
-class GameViewModel : ViewModel() {
+class GameViewModel(application: Application) : AndroidViewModel(application){
 
+    private lateinit var db: AppDatabase
+    private lateinit var dao: TambahKataDao
     // Game UI state
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
@@ -139,4 +153,24 @@ class GameViewModel : ViewModel() {
             shuffleCurrentWord(currentWord)
         }
     }
+
+    fun getSemuaKata(): List<String> {
+        val dariDb = dao.getAll().map { it.word }
+        return (defaultWords + dariDb)
+    }
+    fun tambahKataBaru(word: String){
+        viewModelScope.launch {
+            dao.insert(TambahKata(word = word))
+        }
+    }
+
+    fun init(context: Context){
+        db = Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "kata_db"
+        ).build()
+        dao = db.kataDao()
+    }
+
 }

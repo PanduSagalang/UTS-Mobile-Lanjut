@@ -3,17 +3,17 @@ package com.example.unscramble
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.unscramble.data.GameHistory
+import com.example.unscramble.data.TambahKata
 
 
 @Dao
-interface HistoryDao {
+interface TambahKataDao {
 
-        @Query("SELECT * FROM game_history ORDER BY id DESC")
-        suspend fun getAllHistory(): List<GameHistory>
+        @Query("SELECT * FROM kata")
+        suspend fun getAll(): List<TambahKata>
 
         @Insert
-        suspend fun insert(history: GameHistory)
+        suspend fun insert(history: TambahKata)
 
 
     }
