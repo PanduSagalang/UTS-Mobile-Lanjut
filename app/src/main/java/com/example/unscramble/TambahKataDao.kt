@@ -13,7 +13,8 @@ interface TambahKataDao {
         suspend fun getAll(): List<TambahKata>
 
         @Insert
-        suspend fun insert(history: TambahKata)
+        suspend fun insert(kata: TambahKata)
+
 
 
     }

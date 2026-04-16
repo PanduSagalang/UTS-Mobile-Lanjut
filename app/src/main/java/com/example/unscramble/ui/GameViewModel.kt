@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -58,9 +59,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application){
     private var usedWords: MutableSet<String> = mutableSetOf()
     private lateinit var currentWord: String
 
-    init {
-        resetGame()
-    }
 
     /*
      * Re-initializes the game data to restart the game.
@@ -144,8 +142,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application){
     }
 
     private fun pickRandomWordAndShuffle(): String {
-        // Continue picking up a new random word until you get one that hasn't been used before
-        currentWord = allWords.random()
+        var wordList = allWords.toList()
+
+        val dariDb = runBlocking {
+            dao.getAll().map { it.word }
+        }
+
+        wordList = (allWords + dariDb).toList()
+        currentWord = wordList.random()
+
         return if (usedWords.contains(currentWord)) {
             pickRandomWordAndShuffle()
         } else {
@@ -154,9 +159,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application){
         }
     }
 
-    fun getSemuaKata(): List<String> {
-        val dariDb = dao.getAll().map { it.word }
-        return (defaultWords + dariDb)
+    fun getSemuaKata(callback: (List<String>) -> Unit){
+        viewModelScope.launch {
+            val dariDb = dao.getAll().map { it.word }
+            callback(allWords.toList())
+        }
     }
     fun tambahKataBaru(word: String){
         viewModelScope.launch {
@@ -165,12 +172,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application){
     }
 
     fun init(context: Context){
-        db = Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "kata_db"
-        ).build()
+        db = AppDatabase.getInstance(context)
         dao = db.kataDao()
+        resetGame()
     }
 
 }

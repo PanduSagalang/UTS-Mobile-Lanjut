@@ -65,7 +65,8 @@ import com.example.unscramble.R
 import com.example.unscramble.ui.theme.UnscrambleTheme
 
 @Composable
-fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
+fun GameScreen(gameViewModel: GameViewModel= viewModel()) {
+    var showTambahKata by remember { mutableStateOf(false) }
     val gameUiState by gameViewModel.uiState.collectAsState()
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
 
@@ -122,6 +123,17 @@ fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
                     fontSize = 16.sp
                 )
             }
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { showTambahKata = !showTambahKata }
+            ) {
+                Text("Tambah Kata")
+            }
+        }
+
+        if (showTambahKata) {
+            TambahKataUI(gameViewModel)
         }
 
         GameStatus(score = gameUiState.score, modifier = Modifier.padding(20.dp))
@@ -276,7 +288,19 @@ fun TambahKataUI(viewModel: GameViewModel) {
         TextField(
             value = text,
             onValueChange = { text = it },
-            label = { Text("Masukkan kata") }
+            label = { Text("Masukkan kata") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    if (text.isNotEmpty()) {
+                        viewModel.tambahKataBaru(text)
+                        text = ""
+                    }
+                }
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))

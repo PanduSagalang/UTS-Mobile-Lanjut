@@ -19,11 +19,13 @@ abstract class AppDatabase : RoomDatabase(){
 
         fun getInstance(applicationContext: Context): AppDatabase{
 
-            return INSTANCE ?: Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java, "database-unscramble"
-            ).build().also {
-                INSTANCE = it
+            return INSTANCE ?: synchronized(this) {
+                Room.databaseBuilder(
+                    applicationContext,
+                    AppDatabase::class.java, "database-unscramble"
+                ).build().also {
+                    INSTANCE = it
+                }
             }
 
         }
